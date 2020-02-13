@@ -18,7 +18,7 @@ MongoClient.connect(url, function(err, db) {
     //     if(err) throw err;
     //     console.log(res.insertedCount + " Courses added");
     // })
-    dbo.collection("courses").find({}, {projection:{_id:0}}).toArray( (err,res)=>{
+    dbo.collection("courses").find({name:"Course1"}, {projection:{_id:0}}).toArray( (err,res)=>{
         if(err) throw err;
         console.log(res)
     })
