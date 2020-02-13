@@ -1,6 +1,7 @@
 const express = require('express')
 const Joi = require('joi')
 const app=express()
+const MongoClient = require('mongodb').MongoClient;
 app.use(express.json())
 
 courses=[
@@ -8,6 +9,18 @@ courses=[
     {id:2,name:'Course2'},
     {id:3,name:'Course3'}
 ]
+const url='mongodb://localhost:27017/mydb'
+
+MongoClient.connect(url, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("mydb");
+    dbo.createCollection("customers", function(err, res) {
+      if (err) throw err;
+      console.log("Collection created!");
+      db.close();
+    });
+  });
+
 app.get('/', (req,res)=>{
 res.send('Hello Listening')
 });
