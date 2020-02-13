@@ -5,21 +5,24 @@ const MongoClient = require('mongodb').MongoClient;
 app.use(express.json())
 
 courses=[
-    {id:1,name:'Course1'},
-    {id:2,name:'Course2'},
-    {id:3,name:'Course3'}
+    {_id:1,name:'Course1'},
+    {_id:2,name:'Course2'},
+    {_id:3,name:'Course3'}
 ]
-const url='mongodb://localhost:27017/mydb'
-
+const url='mongodb://localhost:27017/test'
+var dbo;
 MongoClient.connect(url, function(err, db) {
     if (err) throw err;
-    var dbo = db.db("mydb");
-    dbo.createCollection("customers", function(err, res) {
-      if (err) throw err;
-      console.log("Collection created!");
-      db.close();
-    });
-  });
+    dbo = db.db("test");
+    // dbo.collection("courses").insertMany(courses,(err,res)=>{
+    //     if(err) throw err;
+    //     console.log(res.insertedCount + " Courses added");
+    // })
+    dbo.collection("courses").find({}, {projection:{_id:0}}).toArray( (err,res)=>{
+        if(err) throw err;
+        console.log(res)
+    })
+});
 
 app.get('/', (req,res)=>{
 res.send('Hello Listening')
