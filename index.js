@@ -14,7 +14,7 @@ const url='mongodb://localhost:27017/test'
 MongoClient.connect(url, function(err, db) {
     if (err) throw err;
     dbo = db.db("test");
-    dbo.collection("courses").find({}).sort({name:-1}).toArray( (err,res)=>{
+    dbo.collection("courses").find({}).sort({_id:-1}).toArray( (err,res)=>{
         if(err) throw err;
         console.log(res)
     })
@@ -95,15 +95,20 @@ app.put('/api/courses/:id',(req,res)=>{
 })
 
 app.delete('/api/courses/:id',(req,res)=>{
-    const course=courses.find(c=>c.id===parseInt(req.params.id))
-    if(!course){
-        res.status(404).send("Course not found");
-        return;
-    }
-
-    const index=courses.indexOf(course);
-    courses.splice(index,1);
-    res.send(course)
+    MongoClient.connect(url,(err,db)=>{
+        if(err) throw err;
+        dbo=db.db("test");
+        dbo.collection("courses").findOne({_id:parseInt(`${req.params.id}`)},(err,result)=>{
+            if(err) throw err;
+            console.log(result)
+            if (result==null) return res.status(400).send("Course not found");
+        dbo.collection("courses").deleteOne({_id:parseInt(`${req.params.id}`)},(err,data)=>{
+        if(err) throw err;
+        console.log(data)     
+        res.send(result)
+        })
+    })
+})
 })
 
 const port = process.env.PORT || 3000;
