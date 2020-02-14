@@ -74,19 +74,24 @@ app.post('/api/courses',(req,res)=>{
     });
 })
 app.put('/api/courses/:id',(req,res)=>{
-    const course=courses.find(c=>c.id===parseInt(req.params.id))
-    if(!course){
-        res.status(404).send("Course not found");
-        return;
-    }
+    
     const {error}=validateCourse(req.body)
     if(error){
         res.status(400).send(error.details[0].message)
         return
-    }
-    course.name=req.body.name;
-    res.send(course);
-
+    }    
+    MongoClient.connect(url,(err,db)=>{
+        if(err) throw err;
+        dbo=db.db("test");
+        dbo.collection("courses").updateOne({_id:parseInt(`${req.params.id}`)},{$set:{name:`${req.body.name}`}},(err,result)=>{
+            if(result.result.matchedCount===0) return res.status(400).send("Course not found");
+                    dbo.collection("courses").findOne({_id:parseInt(`${req.params.id}`)},(err,data)=>{
+                            if(err) throw err;
+                            if (data!=null) res.send(data);
+                            else res.status(400).send("Course not found")
+                        })
+                })
+})
 })
 
 app.delete('/api/courses/:id',(req,res)=>{
