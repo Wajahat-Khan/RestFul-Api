@@ -10,14 +10,10 @@ courses=[
     {_id:3,name:'Course3'}
 ]
 const url='mongodb://localhost:27017/test'
-var dbo;
+
 MongoClient.connect(url, function(err, db) {
     if (err) throw err;
     dbo = db.db("test");
-    // dbo.collection("courses").insertMany(courses,(err,res)=>{
-    //     if(err) throw err;
-    //     console.log(res.insertedCount + " Courses added");
-    // })
     dbo.collection("courses").find({}).sort({name:-1}).toArray( (err,res)=>{
         if(err) throw err;
         console.log(res)
@@ -33,15 +29,13 @@ app.get('/api/courses',(req,res)=>{
      if(err) throw err;
      dbo=db.db("test");
      dbo.collection("courses").find({}).toArray((err,data)=>{
-         res.send(data);
+        if (data!=null) res.send(data);
+        else res.status(400).send("Course not found")
      })
    })
 })
 
 app.get('/api/courses/:id',(req,res)=>{
-    // const course=courses.find(c=>c.id===parseInt(req.params.id))
-    // if(!course) res.status(400).send("Course not found");
-    // res.send(course)
     MongoClient.connect(url,(err,db)=>{
         if(err) throw err;
         dbo=db.db("test");
@@ -60,12 +54,24 @@ app.post('/api/courses',(req,res)=>{
         res.status(400).send(error.details[0].message)
         return
     }
-    let course ={
-        id: courses.length + 1,
-        name: req.body.name
-    }
-    courses.push(course)
-    res.send(course)
+  
+    MongoClient.connect(url, function(err, db) {
+        if (err) throw err;
+        dbo = db.db("test");
+        dbo.collection("courses").find({}, {projection: {_id:1}}).sort({_id:-1}).toArray((err,data)=>{
+            if (err) throw err;
+            let course ={
+                _id:parseInt(`${data[0]._id}`) + 1,
+                name:req.body.name
+            }
+            dbo.collection("courses").insertOne(course,(err,data)=>{
+                if(err) throw err;
+                console.log(data.insertedCount + " Courses added");
+                res.send(course);
+            })
+        })
+        
+    });
 })
 app.put('/api/courses/:id',(req,res)=>{
     const course=courses.find(c=>c.id===parseInt(req.params.id))
