@@ -29,13 +29,28 @@ res.send('Hello Listening')
 });
 
 app.get('/api/courses',(req,res)=>{
-    res.send(courses)
+   MongoClient.connect(url, function(err,db){
+     if(err) throw err;
+     dbo=db.db("test");
+     dbo.collection("courses").find({}).toArray((err,data)=>{
+         res.send(data);
+     })
+   })
 })
 
 app.get('/api/courses/:id',(req,res)=>{
-    const course=courses.find(c=>c.id===parseInt(req.params.id))
-    if(!course) res.status(400).send("Course not found");
-    res.send(course)
+    // const course=courses.find(c=>c.id===parseInt(req.params.id))
+    // if(!course) res.status(400).send("Course not found");
+    // res.send(course)
+    MongoClient.connect(url,(err,db)=>{
+        if(err) throw err;
+        dbo=db.db("test");
+        dbo.collection("courses").findOne({_id:parseInt(`${req.params.id}`)},(err,data)=>{
+            if(err) throw err;
+            if (data!=null) res.send(data);
+            else res.status(400).send("Course not found")
+        })
+    })
 })
 
 app.post('/api/courses',(req,res)=>{
